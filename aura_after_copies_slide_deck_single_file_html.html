@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aura After Copies: The Angel of History Meets the Algorithm</title>
+<meta name="description" content="Single-file, mobile-first HTML/CSS/JS lecture deck for LMC 2400: Aura, Remediation, and Algorithmic Reproduction." />
+<meta name="theme-color" content="#0b0b0b" />
+<style>
+  :root{
+    /* Palette */
+    --bg:#0b0b0b;           /* deep charcoal */
+    --fg:#f5f5f5;           /* paper white */
+    --muted:#b9b9b9;        
+    --accent:#ff5a00;       /* signal orange */
+    --trace:#2ecc71;        /* green */
+    --counter:#ff8c1a;      /* orange */
+    --style:#57a0ff;        /* blue */
+    --outline:#333;
+    --ink:#111;
+
+    --pad:24px;
+    --radius:18px;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+    --code:#111;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font: 400 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+
+  /* Deck layout */
+  .deck{position:fixed; inset:0; display:grid; place-items:center; overflow:hidden}
+  .slide{width:min(100vw,1100px); height:min(100vh,700px); overflow:auto; background:#111;
+         border:1px solid #222; border-radius:var(--radius); box-shadow:var(--shadow);
+         padding:clamp(16px,3vw,42px); display:flex; flex-direction:column; gap:18px}
+  .slide h1,.slide h2,.slide h3{line-height:1.15; margin:0}
+  .slide h1{font-size:clamp(26px,4.5vw,44px)}
+  .slide h2{font-size:clamp(22px,3.5vw,34px)}
+  .slide h3{font-size:clamp(18px,2.6vw,24px)}
+  .lead{font-size:clamp(16px,2.2vw,20px); color:var(--muted)}
+  .small{font-size:.95rem; color:var(--muted)}
+  .kicker{letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700}
+
+  /* Trace/Counter/Style blocks */
+  .tcs{display:grid; gap:10px}
+  .tcs .block{border-left:6px solid #444; padding:10px 12px; border-radius:12px; background:#0e0e0e}
+  .block.trace{border-color:var(--trace)}
+  .block.counter{border-color:var(--counter)}
+  .block.style{border-color:var(--style)}
+  .tag{font-weight:700; text-transform:uppercase; letter-spacing:.06em; font-size:.8rem; opacity:.9}
+  .tag.trace{color:var(--trace)}
+  .tag.counter{color:var(--counter)}
+  .tag.style{color:var(--style)}
+
+  /* Top bar */
+  .bar{position:fixed; left:12px; right:12px; top:12px; display:flex; align-items:center; gap:8px; z-index:5}
+  .pill{background:#141414; border:1px solid #222; padding:8px 12px; border-radius:999px; display:flex; align-items:center; gap:8px}
+  .btn{appearance:none; border:none; background:#181818; color:var(--fg); border:1px solid #282828; padding:8px 12px; border-radius:12px; cursor:pointer}
+  .btn:hover{background:#202020}
+  .btn[aria-pressed="true"]{outline:2px solid var(--accent)}
+  .spacer{flex:1}
+  .progress{min-width:150px; height:8px; background:#1b1b1b; border:1px solid #2a2a2a; border-radius:999px; overflow:hidden}
+  .progress>i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#ffd166)}
+
+  /* Lists / tables */
+  ul,ol{padding-left:1.2em; margin:0}
+  table{border-collapse:collapse; width:100%; background:#0f0f0f; border:1px solid #222; border-radius:12px; overflow:hidden}
+  th,td{padding:10px 12px; border-bottom:1px solid #222}
+  th{background:#171717; text-align:left}
+  tr:last-child td{border-bottom:none}
+
+  /* Visual placeholders (ALT visuals) */
+  .alt{border:1px dashed #333; padding:10px; border-radius:12px; color:#cfcfcf; background:#0c0c0c}
+
+  /* Footer */
+  .foot{margin-top:auto; display:flex; align-items:center; gap:12px; color:var(--muted)}
+  .tip{font-size:.9rem}
+
+  /* Mobile fit */
+  @media (max-width:640px){
+    .slide{height:calc(100vh - 80px); width:calc(100vw - 16px)}
+    .bar{left:8px; right:8px}
+  }
+
+  /* Print */
+  @media print{
+    body{background:white; color:black}
+    .bar{display:none}
+    .deck{display:block; position:static}
+    .slide{break-after:page; width:auto; height:auto; box-shadow:none; border-color:#ccc; background:white; color:black}
+    .tcs .block{background:#fafafa}
+  }
+</style>
+</head>
+<body>
+  <!-- Top utility bar -->
+  <nav class="bar" aria-label="Deck controls">
+    <div class="pill" aria-live="polite">
+      <strong>“Aura After Copies”</strong>
+      <span class="small" id="meta">LMC 2400 · Thu 11 Sep 2025 · 75 min</span>
+    </div>
+    <button class="btn" id="prev" aria-label="Previous slide">◀</button>
+    <button class="btn" id="next" aria-label="Next slide">▶</button>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Slide progress">
+      <i id="bar"></i>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="help" aria-haspopup="dialog" aria-controls="helpdlg" aria-label="Show shortcuts">?</button>
+  </nav>
+
+  <main class="deck" id="deck" tabindex="0" aria-live="polite"></main>
+
+  <!-- Help dialog (lightweight) -->
+  <dialog id="helpdlg">
+    <h3>Shortcuts</h3>
+    <p>Arrow keys or swipe to navigate. <kbd>F</kbd> toggles full-screen. <kbd>P</kbd> prints to PDF. <kbd>G</kbd> opens slide grid.</p>
+    <form method="dialog"><button class="btn">Close</button></form>
+  </dialog>
+
+<script>
+// --- Slide Data --------------------------------------------------------------
+const DECK = [
+  {
+    id: 'title',
+    h1: 'Aura After Copies: The Angel of History Meets the Algorithm',
+    sub: 'Core Claim — Reproduction doesn’t kill aura; it relocates it, reshaping memory and progress.',
+    key: 'Key Question — How does algorithmic reproduction demand new ideas of authenticity, memory, and progress?',
+    footer: 'LMC 2400 · Thu 11 Sep 2025 · 75 min'
+  },
+  {
+    id: 'map', h2: 'Welcome & Three-Assignment Map',
+    alt: 'Triangle linking “Reading Response,” “Discussion Leader,” “Short Paper 1” with arrows looping between each.',
+    tcs: {
+      trace: 'Shared Building Blocks — “Theory → critique → style: the same moves power all three tasks.”',
+      counter: 'Silo Risk — Students often approach each deliverable separately, fragmenting insight.',
+      style: 'Color-coded scaffold (green/orange/blue) shows cross-assignment reuse. Paper Hook: The way you structure a reading response paragraph can be the backbone of a Short Paper section.'
+    }
+  },
+  {
+    id: 'recap', h2: 'Recap: From Immediacy to Aura',
+    tcs: {
+      trace: 'Bolter & Grusin: Remediation = new media refashion older media, oscillating between immediacy and hypermediacy.',
+      counter: 'Immediacy alone ignores aura’s sedimented, ritual dimensions.',
+      style: 'Sets up Benjamin: mediation is not a barrier but the site of aura’s transformation. Paper Hook: Identify how remediation reframes authenticity in your case study.'
+    }
+  },
+  {
+    id: 'ben-mech', h2: 'Benjamin: Mechanical Reproduction',
+    quote: '“Even the most perfect reproduction… is lacking in one element: its presence in time and space.”',
+    tcs: {
+      trace: 'Aura’s vulnerability emerges when copying is industrialized.',
+      counter: 'Copies can intensify attachment; popular prints can expand cult value.',
+      style: 'Medium shift (press → photo → cinema) rewrites perception’s politics. Paper Hook: Which medium’s debut disrupted authenticity norms?'
+    }
+  },
+  {
+    id: 'ben-aura', h2: 'Benjamin: Defining Aura',
+    tcs: {
+      trace: 'Aura = uniqueness + ritual distance; a “structure of experience” embedded in time, tradition, and sedimented interpretation.',
+      counter: 'Aura can be staged/re-embedded: provenance, exhibition context, or narrative can recreate “as if” authenticity.',
+      style: 'From cult value (sacred, withheld) to exhibition value (shared, circulated). Paper Hook: Map your case on this cult–exhibition axis.'
+    }
+  },
+  {
+    id: 'carey', h2: 'Carey: Ritual View of Communication & Sacrality',
+    tcs: {
+      trace: 'Ritual view = maintenance of society over information exchange; ritual creates sacralized space/time.',
+      counter: 'Sacralization can enforce exclusion or violence to uphold “authenticity.”',
+      style: 'Link ritual aura to cult of the original; note when sacrality persists after religious context fades. Paper Hook: How do ritual framings shape your chosen medium’s aura?'
+    }
+  },
+  {
+    id: 'thesis-ix', h2: 'Benjamin: Thesis IX (Angelus Novus)',
+    tcs: {
+      trace: 'Angel faces past wreckage; “storm from Paradise” drives it into the future.',
+      counter: 'Some read parrhesia (truth-telling despite risk) in the angel’s will to “awaken the dead.”',
+      style: 'Historical consciousness is media consciousness. Paper Hook: Tie a media transition to a pivot in public memory.'
+    }
+  },
+  {
+    id: 'video-essay', h2: 'Video Essay: Angel of History',
+    alt: 'Klee’s Angelus Novus overlaid with Instagram/TikTok feed ruins; multimodal montage.',
+    tcs: {
+      trace: 'Multimodal remediation of Thesis IX into scroll-culture language.',
+      counter: 'Editing velocity risks flattening nuance into spectacle — kayfabe aura.',
+      style: 'Form as argument: montage can re-sacralize or trivialize. Paper Hook: Analyze a remix as algorithmic memory-work.'
+    }
+  },
+  {
+    id: 'stanley', h2: 'Stanley: Algorithmic Reproduction',
+    tcs: {
+      trace: 'AI joins humans in “planetary sapience,” producing at scale. Aura relocates to traceability — provenance in datasets and model lineage.',
+      counter: 'Opaque models create audit gaps; new aura lacks credibility if its history is hidden.',
+      style: 'Personalization engines curate aura for each user. Paper Hook: Treat recommendation algorithms as exhibition spaces.'
+    }
+  },
+  {
+    id: 'relocated', h2: 'Aura Relocated: Mechanical ➜ Algorithmic',
+    tcs: {
+      trace: 'Copy → prediction: authenticity shifts from origin to evidentiary chain (dataset, model version, output).',
+      counter: 'Loss of public consensus on provenance undermines aura’s social function.',
+      style: 'Compare analog–digital–algorithmic transitions; track changing standards of authenticity. Paper Hook: Where is the “chain of custody” in your medium?'
+    }
+  },
+  {
+    id: 'drill-trace', h2: 'Workshop Drill 1: Trace Builder',
+    prompt: 'Live-fill Trace for Benjamin’s aura definition. Prompt: How would this Trace anchor a paragraph in your Short Paper?'
+  },
+  {
+    id: 'drill-counter', h2: 'Workshop Drill 2: Counter Builder',
+    prompt: 'Live-fill Counter for “aura loss” narrative. Prompt: Could this Counter become your counter-argument?'
+  },
+  {
+    id: 'drill-style', h2: 'Workshop Drill 3: Style & Connection Builder',
+    prompt: 'Live-fill Style for Thesis IX. Prompt: What past media shift echoes the algorithmic turn?'
+  },
+  {
+    id: 'kcp', h2: 'Kayfabe, Cringe, Parrhesia in Aura Politics',
+    tcs: {
+      trace: 'Kayfabe = maintaining the script of authenticity; Cringe = risk of exposure; Parrhesia = truth despite consequence.',
+      counter: 'Breaking kayfabe can collapse aura or produce new, subcultural aura.',
+      style: 'Aura as performance — concealment vs. revelation as media rituals. Paper Hook: Identify moments when breaking the frame altered authenticity politics.'
+    }
+  },
+  {
+    id: 'response', h2: 'Assemble the Reading Response',
+    list: [
+      'Show full Benjamin example → transform into Discussion Leader post.',
+      'Opening Q: “Where do we see aura now — and who maintains it?”',
+      'Add 2–3 follow-ups; identify a paper tie-in.'
+    ]
+  },
+  {
+    id: 'paper-onramp', h2: 'Short Paper 1 On-Ramp',
+    table: {
+      head: ['Medium Shift','Possible Trace','Possible Counter','Style Link'],
+      rows: [
+        ['Early Photography','Aura displaced to sitter’s gaze','Legrady: aura persists','Portrait aesthetics'],
+        ['Radio → Podcast','Live voice ≠ downloadable file','Ephemerality revival','Sonic remediation'],
+        ['GAN Art','Dataset as provenance','Bias + opacity','Generative aesthetics']
+      ]
+    }
+  },
+  {
+    id: 'wrap', h2: 'Wrap & Hand-Off',
+    list: [
+      'One week’s work = three deliverables (Response, Discussion Post, Short Paper scaffold).',
+      'Exit Ticket: Name one concept you’ll reuse in both response and paper.',
+    ]
+  },
+  { id:'A1', h2:'Appendix A1 – Blank Trace/Counter/Style Template',
+    table:{
+      head:['Section','Notes'],
+      rows:[
+        ['Trace (green)','Concept + quote/paraphrase + significance'],
+        ['Counter (orange)','Critique, limitation, tension'],
+        ['Style & Connection (blue)','Form’s role + link past/future + paper relevance'],
+      ]
+    }
+  },
+  { id:'A2', h2:'Appendix A2 – Timeline Diagram',
+    alt:'Mechanical → Digital → Algorithmic reproduction. Horizontal arrow with key techs and aura loci shifts.'
+  },
+  { id:'A3', h2:'Appendix A3 – Short Paper 1 Outline Template',
+    list:[ 'I. Historical Moment', 'II. Trace (theory in action)', 'III. Counter (critical tension)', 'IV. Style & Connection (medium analysis)', 'V. Implications for authenticity/memory/progress' ]
+  },
+  { id:'A4', h2:'Appendix A4 – Discussion Leader Checklist',
+    list:[
+      'Hook question ties to readings',
+      '2 follow-ups deepen debate',
+      'Short Paper bridge',
+      'Closing synthesis connects to course arc'
+    ]
+  }
+];
+
+// --- Render Engine -----------------------------------------------------------
+const $ = sel => document.querySelector(sel);
+const deckEl = $('#deck');
+let idx = 0;
+
+function el(tag, attrs={}, children=[]) {
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else if (k==='html') n.innerHTML = v; else n.setAttribute(k, v);
+  }
+  for (const c of (Array.isArray(children)?children:[children])) if (c!=null) n.append(c.nodeType?c:document.createTextNode(c));
+  return n;
+}
+
+function tcsBlocks(tcs){
+  if (!tcs) return null;
+  return el('div',{class:'tcs'},[
+    el('div',{class:'block trace'},[ el('div',{class:'tag trace'},'Trace'), el('div',{},tcs.trace||'') ]),
+    el('div',{class:'block counter'},[ el('div',{class:'tag counter'},'Counter'), el('div',{},tcs.counter||'') ]),
+    el('div',{class:'block style'},[ el('div',{class:'tag style'},'Style & Connection'), el('div',{},tcs.style||'') ])
+  ]);
+}
+
+function tableBlock(tbl){
+  if(!tbl) return null;
+  const thead = el('thead',{}, el('tr',{}, tbl.head.map(h=>el('th',{},h))));
+  const tbody = el('tbody',{}, tbl.rows.map(row=>el('tr',{}, row.map(cell=>el('td',{},cell)))));
+  return el('table',{},[thead,tbody]);
+}
+
+function listBlock(items){
+  if(!items) return null;
+  return el('ul',{}, items.map(x=>el('li',{},x)));
+}
+
+function renderSlide(s){
+  const nodes = [];
+  if (s.h1) nodes.push(el('h1',{},s.h1));
+  if (s.h2) nodes.push(el('h2',{},s.h2));
+  if (s.sub) nodes.push(el('div',{class:'lead'},s.sub));
+  if (s.key) nodes.push(el('div',{class:'kicker'},s.key));
+  if (s.quote) nodes.push(el('blockquote',{class:'alt', role:'note'}, '“'+s.quote+'”'));
+  if (s.alt) nodes.push(el('div',{class:'alt', role:'img', 'aria-label':s.alt}, s.alt));
+  if (s.prompt) nodes.push(el('div',{class:'alt'}, s.prompt));
+  if (s.list) nodes.push(listBlock(s.list));
+  if (s.table) nodes.push(tableBlock(s.table));
+  if (s.tcs) nodes.push(tcsBlocks(s.tcs));
+  const foot = el('div',{class:'foot'},[
+    el('div',{class:'tip'},'Arrows/swipe navigate · G = grid · F = full-screen · P = print')
+  ]);
+  nodes.push(foot);
+  return el('section',{class:'slide', id:s.id, role:'region', 'aria-label': s.h1||s.h2||'Slide'}, nodes);
+}
+
+function mount(){
+  deckEl.innerHTML='';
+  deckEl.append(renderSlide(DECK[idx]));
+  updateProgress();
+  document.title = (DECK[idx].h2||DECK[idx].h1)+' — Aura After Copies';
+}
+
+function updateProgress(){
+  const pct = Math.round(((idx+1)/DECK.length)*100);
+  const bar = $('#bar');
+  bar.style.width = pct+'%';
+  const pb = bar.parentElement; pb.setAttribute('aria-valuenow', pct);
+}
+
+function prev(){ idx = (idx-1+DECK.length)%DECK.length; mount(); }
+function next(){ idx = (idx+1)%DECK.length; mount(); }
+
+// Keyboard, touch, and UI
+let touchStartX = 0; let touchEndX = 0;
+function handleGesture(){ if (touchEndX < touchStartX-40) next(); if (touchEndX > touchStartX+40) prev(); }
+
+deckEl.addEventListener('touchstart', e=>{touchStartX = e.changedTouches[0].screenX;});
+deckEl.addEventListener('touchend', e=>{touchEndX = e.changedTouches[0].screenX; handleGesture();});
+
+window.addEventListener('keydown', e=>{
+  if (['ArrowRight','PageDown',' '].includes(e.key)) { next(); e.preventDefault(); }
+  if (['ArrowLeft','PageUp','Backspace'].includes(e.key)) { prev(); e.preventDefault(); }
+  if (e.key.toLowerCase()==='f') toggleFull();
+  if (e.key.toLowerCase()==='p') window.print();
+  if (e.key.toLowerCase()==='g') openGrid();
+});
+
+$('#prev').addEventListener('click', prev);
+$('#next').addEventListener('click', next);
+$('#help').addEventListener('click', ()=> $('#helpdlg').showModal());
+
+function toggleFull(){
+  const el = document.documentElement;
+  if (!document.fullscreenElement) el.requestFullscreen?.(); else document.exitFullscreen?.();
+}
+
+// Simple grid navigator
+function openGrid(){
+  const grid = el('div',{id:'grid', style:'position:fixed;inset:0;background:rgba(0,0,0,.8);padding:24px;overflow:auto;z-index:10'});
+  const wrap = el('div',{style:'display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));'});
+  DECK.forEach((s,i)=>{
+    const card = el('button',{class:'btn', style:'text-align:left;background:#141414;border:1px solid #2a2a2a;border-radius:16px;padding:14px'},[
+      el('div',{class:'small',style:'opacity:.8'},`#${i+1}`),
+      el('div',{style:'font-weight:700;margin:.2rem 0;'}, s.h2 || s.h1 || s.id),
+      el('div',{class:'small',style:'color:#bdbdbd'}, (s.kicker||s.sub||s.alt||'').toString().slice(0,120))
+    ]);
+    card.addEventListener('click', ()=>{ idx=i; mount(); grid.remove(); deckEl.focus(); });
+    wrap.append(card);
+  });
+  const close = el('button',{class:'btn', style:'position:fixed;top:16px;right:16px;z-index:11'},'Close');
+  close.addEventListener('click', ()=> grid.remove());
+  grid.append(wrap, close);
+  document.body.append(grid);
+}
+
+// Start
+mount();
+</script>
+</body>
+</html>
