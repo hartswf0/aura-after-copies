@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Categorical Field Theory of Temporal Memory — Sankofa · Angelus Novus · Remediation</title>
+<style>
+  :root{
+    --bg:#0b0c10; --fg:#e5f2ff; --muted:#9bb3c7; --accent:#7ee787; --accent2:#ffb86b; --accent3:#75a7ff;
+    --card:#12141a; --hl:#1d2330; --danger:#ff6b6b; --ok:#58e6a9;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;}
+  .deck{height:100%;display:grid;grid-template-rows:auto 1fr auto;}
+  header,footer{padding:10px 18px;color:var(--muted);}
+  header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--hl);}
+  footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--hl);}
+  .progress{height:4px;background:var(--hl);position:relative;overflow:hidden;border-radius:999px;margin-left:12px;flex:1}
+  .progress>i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .25s ease}
+  .slides{height:100%;position:relative;overflow:hidden}
+  .slide{position:absolute;inset:0;padding:6vh 8vw;display:none}
+  .slide.active{display:block;}
+  h1,h2,h3{line-height:1.1;margin:0 0 .6rem 0}
+  h1{font-size:3rem}
+  h2{font-size:2.25rem}
+  h3{font-size:1.4rem;color:var(--muted)}
+  p{font-size:1.15rem;max-width:1000px;color:#dbe9ff}
+  .muted{color:var(--muted)}
+  .bullets{margin:.8rem 0 0 0;padding-left:1.2rem}
+  .bullets li{margin:.35rem 0 0 0;font-size:1.2rem}
+  .grid{display:grid;gap:20px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .card{background:var(--card);border:1px solid var(--hl);padding:18px;border-radius:14px}
+  .kicker{letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;font-size:.95rem;margin-bottom:.25rem}
+  .caption{font-size:.95rem;color:var(--muted);margin-top:.6rem}
+  .pill{display:inline-block;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--hl);margin-right:.35rem;color:var(--muted);font-size:.85rem}
+  .huge{font-size:4.2rem}
+  .center{display:flex;align-items:center;justify-content:center}
+  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--card);border:1px solid var(--hl);padding:14px;border-radius:12px;overflow:auto;color:#d9e7ff}
+  svg{max-width:100%;height:auto}
+  .tri{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:14px}
+  .tag{background:var(--hl);padding:.2rem .5rem;border-radius:8px;font-size:.85rem;color:#cfe5ff}
+  .note{border-left:3px solid var(--accent2);padding-left:10px;margin-top:10px;color:#e7f6ff}
+  .small{font-size:.95rem;color:var(--muted)}
+  .credits{font-size:.85rem;color:#9ab}
+  .kbd{padding:.1rem .35rem;border:1px solid var(--hl);border-bottom-width:3px;border-radius:6px;background:#0f1522}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  .hl{color:var(--accent)}
+  .danger{color:var(--danger)}
+  .ok{color:var(--ok)}
+  .line{height:1px;background:var(--hl);margin:12px 0}
+</style>
+</head>
+<body>
+<div class="deck" role="application" aria-label="Presentation: Categorical Field Theory of Temporal Memory">
+  <header>
+    <div>
+      <span class="pill">LMC 2400</span>
+      <span class="pill">Sep 11, 2025</span>
+      <span class="pill">ACT 1 · Finale</span>
+    </div>
+    <div class="progress" aria-label="progress"><i id="bar"></i></div>
+  </header>
+
+  <main class="slides" id="slides">
+
+    <!-- 1. Title -->
+    <section class="slide active" data-title="Title">
+      <div class="kicker">Categorical Field Theory of Temporal Memory</div>
+      <h1>Sankofa · Angelus Novus · Remediation</h1>
+      <h3 class="muted">Backward-facing consciousness as a method for ethical progress</h3>
+      <div class="tri">
+        <div class="card">
+          <h3>Sankofa</h3>
+          <p>Retrieval ethic. The bird looks back, carrying an egg: the future held by recovered wisdom.</p>
+          <p class="caption">ALT: Adinkra bird facing backward, holding an egg.</p>
+        </div>
+        <div class="card">
+          <h3>Angel of History</h3>
+          <p>Witness function. The angel faces wreckage; progress blows it forward.</p>
+          <p class="caption">ALT: Klee’s <em>Angelus Novus</em> oriented toward the past.</p>
+        </div>
+        <div class="card">
+          <h3>Remediation</h3>
+          <p>Double logic. New media refashion old; immediacy ⇄ hypermediacy.</p>
+          <p class="caption">ALT: Loop diagram showing new medium imitating and diverging.</p>
+        </div>
+      </div>
+      <p class="note">Claim: Innovation begins by facing backward—retrieval, witness, and refashioning compose one temporal method.</p>
+    </section>
+
+    <!-- 2. Foundational Architecture -->
+    <section class="slide" data-title="Foundations">
+      <div class="kicker">I. Foundational Architecture</div>
+      <h2>Spencer‑Brown: Distinction makes time</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Core Axioms</h3>
+          <pre class="mono">VOID  ≔ undifferentiated experience
+MARK  ≔ operation creating memory/forgetting
+CROSS ≔ transform marked ↔ unmarked</pre>
+          <p class="small">Temporal meaning emerges when we mark the past within the present.</p>
+        </div>
+        <div class="card">
+          <h3>Universal Field Equation</h3>
+          <pre class="mono">SPATIOTEMPORAL UNIVERSE
+  → TEMPORAL MEMORY FIELD
+  → CULTURAL WINDOW
+  → RETRIEVAL PHENOMENON
+  → BACKWARD-FACING CONSCIOUSNESS</pre>
+          <p class="small">All three traditions instantiate this same pipeline.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Sankofa: Instantiation -->
+    <section class="slide" data-title="Sankofa 1">
+      <div class="kicker">II. Sankofa Field — Temporal Retrieval</div>
+      <h2>Primary Instantiation</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">UNIVERSE: Ancestral Continuum
+FIELD:   Cultural Memory
+WINDOW:  Adinkra Symbol
+PHEN.:   Wisdom Transmission</pre>
+          <div class="line"></div>
+          <pre class="mono">FORGOTTEN →(GoBack)→ REMEMBERED
+EGG OPERATOR: futurity through pastness</pre>
+        </div>
+        <div class="card">
+          <h3>Window Dynamics</h3>
+          <ul class="bullets">
+            <li>Scale: generational timespan</li>
+            <li>Boundary: Akan cultural horizon</li>
+            <li>Lattice: ritual & pedagogy</li>
+          </ul>
+          <p class="caption">ALT: Stylized Adinkra mark over a timeline looping back.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Sankofa: Distinctions & Example -->
+    <section class="slide" data-title="Sankofa 2">
+      <div class="kicker">Sankofa Field</div>
+      <h2>Crossings & a Live Example</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Key Distinctions</h3>
+          <ul class="bullets">
+            <li>REMEMBERED | FORGOTTEN → Retrieval</li>
+            <li>ANCESTRAL | CONTEMPORARY → Living Tradition</li>
+            <li>ORAL | SYMBOLIC → Embodied Practice</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>In the Wild</h3>
+          <p>Digital Sankofa logos within social movements: traditional symbol remediated to activate ancestral knowledge now.</p>
+          <p class="caption">ALT: Side‑by‑side carved stamp vs. vector logo vs. social tile.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Angel: Instantiation -->
+    <section class="slide" data-title="Angel 1">
+      <div class="kicker">III. Angelus Novus Field — Catastrophe Witness</div>
+      <h2>Primary Instantiation</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">UNIVERSE: Historical Continuum
+FIELD:   Debris Accumulation
+WINDOW:  Angelus Novus Viewpoint
+PHEN.:   Catastrophe Piling</pre>
+          <div class="line"></div>
+          <pre class="mono">PROGRESS →(Storm)→ CATASTROPHE
+ANTI‑PROGRESS operator exposes hidden costs</pre>
+        </div>
+        <div class="card">
+          <h3>Window Dynamics</h3>
+          <ul class="bullets">
+            <li>Scale: messianic time (Jetztzeit)</li>
+            <li>Boundary: single catastrophe horizon</li>
+            <li>Lattice: moments of danger</li>
+          </ul>
+          <p class="caption">ALT: Angel facing left; debris piling to the left; wind blowing right.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Angel: Distinctions & Contemporary Manifestation -->
+    <section class="slide" data-title="Angel 2">
+      <div class="kicker">Angelus Novus Field</div>
+      <h2>Crossings & Today’s Storm</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Key Distinctions</h3>
+          <ul class="bullets">
+            <li>PROGRESS | CATASTROPHE → Critical historiography</li>
+            <li>TELEOLOGICAL | MESSIANIC → Now‑time</li>
+            <li>SEAMLESS | RUPTURED → Dialectical image</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Platform Storm</h3>
+          <p>Infinite scroll forces forward motion while debris (posts, news, claims) piles faster than memory can process.</p>
+          <p class="caption">ALT: Feed column pushing right; archive heap accumulating left.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Remediation: Instantiation -->
+    <section class="slide" data-title="Remediation 1">
+      <div class="kicker">IV. Remediation Field — Media Evolution</div>
+      <h2>Primary Instantiation</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">UNIVERSE: Technological Continuum
+FIELD:   Media Genealogy
+WINDOW:  Double Logic Interface
+PHEN.:   Medium Refashioning</pre>
+          <div class="line"></div>
+          <pre class="mono">OLD FORM →(Imitation)→ NEW FUNCTION
+Conservative → Revolutionary aesthetics</pre>
+        </div>
+        <div class="card">
+          <h3>Window Dynamics</h3>
+          <ul class="bullets">
+            <li>Scale: remediation cycle duration</li>
+            <li>Boundary: immediacy / hypermediacy</li>
+            <li>Lattice: horseless‑carriage moments</li>
+          </ul>
+          <p class="caption">ALT: Carriage silhouette morphing into car; radio→TV; print→web.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Remediation: Distinctions & AI Example -->
+    <section class="slide" data-title="Remediation 2">
+      <div class="kicker">Remediation Field</div>
+      <h2>Crossings & Algorithmic Imitation</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Key Distinctions</h3>
+          <ul class="bullets">
+            <li>TRANSPARENT | OPAQUE → Interface oscillation</li>
+            <li>IMITATIVE | INNOVATIVE → Thresholds</li>
+            <li>OLD FORM | NEW FUNCTION → Proper remediation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>AI Image Generators</h3>
+          <p>“In the style of X” as conservative phase; seeds & prompts enable a novel aesthetic grammar over time.</p>
+          <p class="caption">ALT: Grid of AI images, left: pastiche; right: emergent visual logic.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Aura Relocation Theorem -->
+    <section class="slide" data-title="Aura Theorem">
+      <div class="kicker">V. Aura Relocation Theorem</div>
+      <h2>Where authenticity moves</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">AURA_CLASSICAL = unique presence in time/space
+AURA_DIGITAL   = verifiable provenance chain
+AURA_ALGO      = process transparency & reproducibility
+
+AURA_CLASSICAL →(Remediate)→ AURA_DIGITAL →(AI)→ AURA_ALGO</pre>
+        </div>
+        <div class="card">
+          <h3>Process as Ritual</h3>
+          <ul class="bullets">
+            <li>Seed ≈ signature</li>
+            <li>Model card ≈ authorship claim</li>
+            <li>Prompt text ≈ caption/provenance</li>
+          </ul>
+          <p class="caption">ALT: Metadata pillars supporting an image like a plinth.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Unified Metamodel -->
+    <section class="slide" data-title="Unified Model">
+      <div class="kicker">VI. Unified Metamodel</div>
+      <h2>Three fields, one fixed point</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">TEMPORAL MEMORY SYSTEM =
+  Sankofa ⊕ Angelus Novus ⊕ Remediation
+
+FIXED POINT = BACKWARD‑FACING CONSCIOUSNESS</pre>
+          <p class="small">Progress requires past‑orientation and media awareness simultaneously.</p>
+        </div>
+        <div class="card">
+          <h3>Cross‑Field Resonances</h3>
+          <ul class="bullets">
+            <li>Sankofa ↔ Remediation: conservative retrieval</li>
+            <li>Angel ↔ Remediation: exposed mediation</li>
+            <li>Sankofa ↔ Angel: forward motion, backward gaze</li>
+          </ul>
+          <p class="caption">ALT: Venn of three fields with a glowing center.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. Case: TikTok Aging Filter -->
+    <section class="slide" data-title="Case 1">
+      <div class="kicker">VII. Applications</div>
+      <h2>TikTok Aging Filter — Predictive Sankofa</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <ul class="bullets">
+            <li>Field: future‑memory simulation</li>
+            <li>Window: camera + transformation</li>
+            <li>Phenomenon: ritual of mortal time</li>
+            <li>Aura: emotional witness, not accuracy</li>
+          </ul>
+        </div>
+        <div class="card">
+          <pre class="mono">YOUNG_SELF | OLD_SELF →(Cross)→ TEMPORAL_BRIDGE</pre>
+          <p class="caption">ALT: Split portrait: present face ⇄ aged face, arrow looping back.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. Case: AI Provenance -->
+    <section class="slide" data-title="Case 2">
+      <div class="kicker">Applications</div>
+      <h2>AI Art — Remediated Authenticity</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <ul class="bullets">
+            <li>Kayfabe vs. parrhesia</li>
+            <li>Receipts over mystique</li>
+            <li>Community verification</li>
+          </ul>
+        </div>
+        <div class="card">
+          <pre class="mono">MYSTIQUE | RECEIPTS →(Cross)→ CURATED_TRANSPARENCY</pre>
+          <p class="caption">ALT: Image with overlay of seed, model, prompt as title card.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. Case: Platform Algorithms as Angel -->
+    <section class="slide" data-title="Case 3">
+      <div class="kicker">Applications</div>
+      <h2>Feeds — The Platform Storm</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <ul class="bullets">
+            <li>Storm: push into the future</li>
+            <li>Debris: claims outpace memory</li>
+            <li>Remedy: designed witness rituals</li>
+          </ul>
+        </div>
+        <div class="card">
+          <pre class="mono">SCROLL_FORCE → WRECKAGE_ACCUMULATION → NEED_FOR_WITNESS</pre>
+          <p class="caption">ALT: Endless feed arrow right; archive heap left; user facing left.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. Design Implications -->
+    <section class="slide" data-title="Design">
+      <div class="kicker">VIII. Design Implications</div>
+      <h2>Build with the triad</h2>
+      <div class="grid cols-3 card">
+        <div>
+          <h3 class="hl">Authenticity</h3>
+          <ul class="bullets">
+            <li>Provenance at capture</li>
+            <li>Process as aesthetic</li>
+            <li>Public verification</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="hl">Memory</h3>
+          <ul class="bullets">
+            <li>Active retrieval tools</li>
+            <li>Cost‑of‑progress views</li>
+            <li>Genealogy visible</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="hl">Ethics</h3>
+          <ul class="bullets">
+            <li>Content credentials</li>
+            <li>Model transparency</li>
+            <li>Community witness</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. Synthesis -->
+    <section class="slide" data-title="Synthesis">
+      <div class="kicker">IX. Synthesis</div>
+      <h2>The new temporal contract</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <ul class="bullets">
+            <li><strong>Sankofa</strong>: ethical retrieval</li>
+            <li><strong>Angel</strong>: critical witness</li>
+            <li><strong>Remediation</strong>: media consciousness</li>
+          </ul>
+        </div>
+        <div class="card">
+          <pre class="mono">TEMPORAL_WISDOM =
+  ETHICAL_RETRIEVAL ⊕ CRITICAL_WITNESS ⊕ MEDIA_AWARENESS</pre>
+          <p class="caption">ALT: Three arrows facing left, a path forward illuminated.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16. Coda -->
+    <section class="slide" data-title="Coda">
+      <div class="kicker">Coda</div>
+      <h2>The first distinction</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <pre class="mono">PAST | PRESENT → temporal experience
+
+Composed as three crossings:
+Sankofa:  FORGOTTEN | REMEMBERED
+Angel:    PROGRESS  | CATASTROPHE
+Remed.:   OLD_FORM  | NEW_FUNCTION</pre>
+        </div>
+        <div class="card">
+          <pre class="mono">TEMPORAL_CONSCIOUSNESS =
+  Sankofa ∘ Angel ∘ Remediation</pre>
+          <p class="caption">ALT: Composition operator as braided ribbon through three fields.</p>
+        </div>
+      </div>
+      <p class="note">Get in, get out: face backward, move forward—design for memory, witness, and mediation.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="credits">Use ← → or space • <span class="kbd">F</span> for fullscreen • <span class="kbd">.</span> to toggle low‑light</div>
+    <div id="idx" class="muted"></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const bar = document.getElementById('bar');
+  const idx = document.getElementById('idx');
+  function show(n){
+    slides[i].classList.remove('active');
+    i = Math.max(0, Math.min(slides.length-1, n));
+    slides[i].classList.add('active');
+    const p = ((i+1)/slides.length)*100; bar.style.width = p+'%';
+    idx.textContent = (i+1)+' / '+slides.length+' — '+(slides[i].dataset.title||'');
+  }
+  function next(){ show(i+1); }
+  function prev(){ show(i-1); }
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)) next();
+    if(['ArrowLeft','PageUp','Backspace'].includes(e.key)) prev();
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(slides.length-1);
+    if(e.key==='F' || e.key==='f'){
+      const el=document.documentElement; if(!document.fullscreenElement){el.requestFullscreen?.();}else{document.exitFullscreen?.();}
+    }
+    if(e.key==='.'){
+      document.body.style.background = getComputedStyle(document.body).backgroundColor==="rgb(11, 12, 16)"?"#000":"#0b0c10";
+    }
+  });
+  // click to advance
+  document.getElementById('slides').addEventListener('click', next);
+  // swipe support
+  let sx=null; document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;});
+  document.addEventListener('touchend',e=>{if(sx==null)return; const dx=e.changedTouches[0].clientX-sx; if(dx<-30) next(); if(dx>30) prev(); sx=null;});
+})();
+</script>
+</body>
+</html>
