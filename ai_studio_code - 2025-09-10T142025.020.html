@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Categorical Field Theory of Temporal Memory — Primitive‑Future Deck</title>
+<meta name="theme-color" content="#0d0d0f" />
+<style>
+  :root {
+    /* Primitive‑future tokens */
+    --c-basalt:#0d0d0f;   /* night basalt */
+    --c-clay:#b0582b;     /* fired clay */
+    --c-ochre:#c39a2f;    /* ochre */
+    --c-bone:#f4f0e8;     /* bone */
+    --c-ink:#111111;
+    --c-neon:#00ffe1;     /* cyan fire */
+    --c-mag:#ff2aa1;      /* magenta flame */
+    --c-blood:#9b1c1c;    /* catastrophe accent */
+
+    --bg: var(--c-bone);
+    --fg: var(--c-ink);
+    --rule: #202020;
+    --muted: #5a5a5a;
+
+    --pad: 20px;
+    --radius: 18px;
+    --shadow: 0 6px 24px rgba(0,0,0,.15);
+
+    --scanline: repeating-linear-gradient( to bottom, rgba(0,0,0,.06) 0 1px, transparent 1px 3px);
+    --halftone: radial-gradient(circle at 25% 20%, rgba(0,0,0,.06), transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(0,0,0,.05), transparent 45%);
+  }
+  [data-theme="noir"] {
+    --bg: var(--c-basalt);
+    --fg: var(--c-bone);
+    --rule: #2a2a2a;
+    --muted: #a8a8a8;
+  }
+
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    background: var(--bg);
+    color: var(--fg);
+    line-height:1.35;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Layout */
+  header.app {
+    position:fixed; inset:0 0 auto 0; height:56px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 10px; border-bottom:1px solid var(--rule); background: linear-gradient(to bottom, rgba(0,0,0,.04), transparent), var(--bg);
+    backdrop-filter: blur(4px);
+    z-index:50;
+  }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; }
+  .brand .rune { width:24px; height:24px; border:1.5px solid var(--fg); border-radius:50%; display:grid; place-items:center; position:relative; }
+  .brand .rune::before{ content:"✣"; font-size:14px; line-height:1; }
+  .brand .rune::after{ content:""; position:absolute; inset:-6px; border-radius:50%; box-shadow:0 0 0 0 rgba(0,255,225,.0); pointer-events:none;
+    transition: box-shadow .6s ease; }
+  .brand:focus-within .rune::after, .brand:hover .rune::after{ box-shadow:0 0 0 6px rgba(0,255,225,.12); }
+
+  .controls { display:flex; gap:8px; }
+  button.icon { appearance:none; border:1px solid var(--fg); background:transparent; color:var(--fg); border-radius:12px; padding:8px 10px; min-width:44px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; box-shadow:none; }
+  button.icon:focus-visible{ outline:2px solid var(--c-neon); outline-offset:2px; }
+
+  main.deck { position:fixed; inset:56px 0 0 0; display:grid; place-items:stretch; }
+  .slide {
+    width:100%; height:100%; padding: clamp(16px, 5vw, 48px);
+    display:grid; grid-template-rows:auto 1fr auto; gap:16px;
+    background: var(--bg);
+    background-image: var(--scanline), var(--halftone);
+  }
+  .frame { height:100%; border: 2px solid var(--fg); border-radius: var(--radius); box-shadow: var(--shadow);
+           display:grid; grid-template-rows: auto 1fr auto; overflow:hidden; background: var(--bg); }
+  .frame header { padding:12px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px solid var(--rule); }
+  .frame header h2 { font-size: clamp(18px, 3.6vw, 32px); margin:0; letter-spacing:.2px; }
+  .frame header .badge { font: 700 12px/1 system-ui; text-transform: uppercase; letter-spacing:.8px; padding:6px 10px; border:1px solid var(--fg);
+                         border-radius:999px; background:linear-gradient(to bottom, rgba(255,255,255,.04), transparent); }
+
+  .frame .content { padding: clamp(14px, 3.6vw, 28px); overflow:auto; }
+  .frame .content p { max-width: 72ch; }
+
+  /* Diagram specific styles */
+  .diagram-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    flex-wrap: wrap; /* For responsive layout of side-by-side diagrams */
+    gap: 20px;
+  }
+  .diagram-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px; /* Space between diagram blocks */
+  }
+  .subtitle {
+    font-size: 1.1rem;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .caption {
+    font-size: .85rem; /* slightly smaller than .9rem for better visual hierarchy */
+    color: var(--muted);
+    max-width: 60ch; /* prevent lines from being too long */
+    margin-top: 0;
+  }
+  .svg-diagram {
+    width: 100%;
+    max-width: 600px; /* Max width for single diagrams */
+    height: auto;
+    overflow: visible; /* Allow text/arrows to go slightly outside bounds if needed */
+  }
+  .svg-box {
+    fill: var(--bg);
+    stroke: var(--fg);
+    stroke-width: 1.5;
+    rx: 8;
+    ry: 8;
+  }
+  .svg-text {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    fill: var(--fg);
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .svg-arrow-line {
+    stroke: var(--fg);
+    stroke-width: 1.5;
+    fill: none;
+    marker-end: url(#arrowhead);
+  }
+  .svg-arrowhead {
+    fill: var(--fg);
+  }
+  .debris-path {
+    fill: var(--fg); /* or a muted color */
+    opacity: 0.1;
+  }
+  .remediation-panel-svg {
+    stroke: var(--fg);
+    stroke-width: 1.5;
+    rx: 10;
+    ry: 10;
+    fill: none;
+  }
+  .remediation-panel-svg.conservative {
+    fill: var(--muted);
+    opacity: 0.2;
+    transform: translate(0, 0);
+  }
+  .remediation-panel-svg.revolutionary {
+    fill: var(--c-neon);
+    opacity: 0.2;
+    transform: translate(15px, 15px);
+  }
+  .remediation-arrow-line {
+    stroke: var(--fg);
+    stroke-width: 2;
+    marker-end: url(#arrowhead);
+  }
+
+  /* Global Timeline in Header */
+  .global-timeline { width: 150px; height: 20px; margin-left: auto; }
+  .timeline-line { stroke: var(--fg); stroke-width: 1; }
+  .timeline-label { font-size: 9px; fill: var(--fg); text-anchor: middle; }
+  .timeline-highlight { fill: var(--c-neon); opacity: 0.4; transition: transform 0.5s ease-in-out; }
+
+  /* Micro-timeline for Axioms */
+  .micro-timeline-line { stroke: var(--muted); stroke-width: 2; }
+  .micro-timeline-node { fill: var(--muted); transition: fill 0.3s ease; }
+  .micro-timeline-node.marked { fill: var(--fg); }
+  .micro-timeline-node.marked.accent { fill: var(--c-neon); } /* For specific highlights */
+  .micro-timeline-mark { fill: var(--fg); font-weight: bold; transition: opacity 0.3s ease; opacity: 0; }
+  .micro-timeline-mark.active { opacity: 1; }
+  .micro-timeline-segment { fill: none; stroke: var(--muted); stroke-width: 8; stroke-linecap: round; transition: stroke-opacity 0.3s ease; stroke-opacity: 0; }
+  .micro-timeline-segment.active { stroke-opacity: 1; }
+
+  /* Animation for Axiom 2: Mark */
+  .slide[data-id="2"] .micro-timeline-mark {
+    animation: appear 0.5s forwards;
+    animation-delay: 0.5s;
+  }
+  @keyframes appear {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Marked Toggle for Axioms */
+  .slide[data-marked-state="marked"] .micro-timeline-node.marked { fill: var(--c-neon); }
+  .slide[data-marked-state="marked"] .micro-timeline-segment { stroke-opacity: 0; }
+  .slide[data-marked-state="unmarked"] .micro-timeline-node.marked { fill: var(--fg); }
+  .slide[data-marked-state="unmarked"] .micro-timeline-segment { stroke-opacity: 1; stroke: var(--c-ochre); } /* Highlight unmarked */
+
+
+  /* State Machine elements */
+  .state-node-rect { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; rx: 8; ry: 8; }
+  .state-node-circle { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
+  .state-label { font-size: 13px; fill: var(--fg); text-anchor: middle; dominant-baseline: middle; }
+  .state-transition-line { stroke: var(--fg); stroke-width: 1.5; marker-end: url(#arrowhead); }
+  .state-transition-label { font-size: 10px; fill: var(--muted); text-anchor: middle; dominant-baseline: middle; }
+
+  /* Image examples */
+  .example-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    margin-top: 15px;
+  }
+
+  @media (max-width: 768px) {
+    .diagram-container {
+      flex-direction: column;
+    }
+  }
+
+  .grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { border:1.5px solid var(--fg); border-radius:14px; padding:14px; background:linear-gradient(to bottom right, rgba(0,0,0,.02), transparent); }
+  .card h3 { margin:0 0 8px; font-size:1.05rem; }
+  .triad { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .triad .pill { border:1px solid var(--fg); padding:6px 10px; border-radius:999px; }
+  .triad .arrow { display:inline-flex; align-items:center; gap:6px; }
+  .triad .arrow::before{ content:"→"; }
+  .cross { border:1.5px solid var(--fg); border-radius:12px; padding:8px 10px; display:inline-flex; gap:8px; align-items:center; }
+  .cross::before{ content:"◻"; margin-right:6px; } /* Added ◻ to the cross elements */
+
+
+  .foot { padding:10px 14px; display:flex; align-items:center; justify-content:space-between; border-top:1.5px solid var(--rule); font-size:.9rem; color:var(--muted); }
+
+  /* Field styles */
+  [data-style="sankofa"] .frame{ border-color: var(--c-ochre); }
+  [data-style="sankofa"] .badge{ border-color: var(--c-ochre); color: var(--c-ochre); }
+  [data-style="angel"] .frame{ border-color: var(--c-blood); }
+  [data-style="angel"] .badge{ border-color: var(--c-blood); color: var(--c-blood); }
+  [data-style="remed"] .frame{ border-color: var(--c-neon); }
+  [data-style="remed"] .badge{ border-color: var(--c-neon); color: var(--c-neon); }
+
+  /* Provenance chips (hypermediacy rail) */
+  .chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--fg); border-radius:10px; padding:6px 8px; font: 700 12px/1 ui-monospace, Menlo, Consolas, monospace; }
+  .rail-hidden .chips, .rail-hidden .meta, .rail-hidden .gridlines { display:none !important; }
+
+  /* Index overlay */
+  .index { position:fixed; inset:56px 0 0 0; background:rgba(0,0,0,.65); backdrop-filter: blur(6px); display:none; z-index:60; }
+  .index[aria-hidden="false"]{ display:block; }
+  .index .panel { background:var(--bg); height:100%; padding:16px; overflow:auto; }
+  .index h3{ margin:8px 0 12px; }
+  .index .tiles{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+  .tile { border:1.5px solid var(--fg); border-radius:14px; padding:12px; background:linear-gradient(to bottom right, rgba(0,0,0,.04), transparent); cursor:pointer; }
+  .tile:focus-visible{ outline:2px solid var(--c-neon); outline-offset:2px; }
+
+  /* Accessibility for screen readers - hidden visually */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  /* Print */
+  @media print{
+    header.app, .index { display:none !important; }
+    main.deck { position:static; }
+    .slide { page-break-after: always; height:auto; }
+    .frame { box-shadow:none; }
+  }
+</style>
+</head>
+<body data-theme="noir" class="rail-hidden">
+  <header class="app" role="banner">
+    <div class="brand" aria-label="Deck title">
+      <span class="rune" aria-hidden="true"></span>
+      <span aria-live="polite" style="font-weight:800">Temporal Memory — Myth‑OS Deck</span>
+    </div>
+    <div class="controls" role="group" aria-label="Controls">
+      <button class="icon" id="btnPrev" aria-keyshortcuts="ArrowLeft A" title="Previous (←/A)">←</button>
+      <button class="icon" id="btnNext" aria-keyshortcuts="ArrowRight D Space" title="Next (→/D/Space)">→</button>
+      <button class="icon" id="btnIndex" aria-keyshortcuts="S" title="Slide index (S)">Index</button>
+      <button class="icon" id="btnTheme" aria-keyshortcuts="T" title="Toggle theme (T)">Theme</button>
+      <button class="icon" id="btnRails" aria-keyshortcuts="R" title="Toggle rails: Immediacy/Receipts (R)">Rails</button>
+      <button class="icon" id="btnMarkedToggle" aria-keyshortcuts="M" title="Toggle Marked/Unmarked (M)" style="display:none;">Marked/Unmarked</button>
+    </div>
+    <!-- Global Time Axis -->
+    <svg class="global-timeline" viewBox="0 0 150 20" aria-hidden="true">
+      <line x1="10" y1="10" x2="140" y2="10" class="timeline-line"/>
+      <text x="10" y="7" class="timeline-label">Past</text>
+      <text x="75" y="7" class="timeline-label">Present</text>
+      <text x="140" y="7" class="timeline-label">Future</text>
+      <rect x="0" y="0" width="150" height="20" class="timeline-highlight" id="globalTimelineHighlight" fill="var(--c-neon)" opacity="0.4" style="transform: translateX(0px);"></rect>
+    </svg>
+  </header>
+
+  <main class="deck" role="main" aria-live="polite">
+
+    <!-- 0. Title -->
+    <section class="slide" data-id="0" aria-roledescription="slide" aria-label="Title" data-time-focus="present">
+      <div class="frame" data-style="title">
+        <header>
+          <h2>Categorical Field Theory of Temporal Memory</h2>
+          <span class="badge">myth‑OS</span>
+        </header>
+        <div class="content">
+          <p style="font-size:clamp(1.1rem,3.8vw,1.6rem); max-width:50ch;">
+            <em>Sankofa, Angelus Novus, and Remediation as Unified Spatiotemporal Operations</em>
+          </p>
+          <div class="diagram-panel" aria-labelledby="core-claim-subtitle" aria-describedby="core-claim-caption">
+            <svg class="svg-diagram" viewBox="0 0 500 60" role="img" aria-labelledby="core-claim-title">
+                <title id="core-claim-title">Core Claim: Reproduction and Aura</title>
+                <text x="250" y="35" class="svg-text" style="font-size:16px;">Reproduction doesn’t kill <tspan style="font-weight:bold;">aura</tspan>; it relocates it, reshaping memory and progress.</text>
+            </svg>
+            <h3 class="subtitle" id="core-claim-subtitle">The central hypothesis of the deck</h3>
+            <p class="caption" id="core-claim-caption">This core claim posits that technological reproduction, rather than diminishing the unique presence (aura) of an object or concept, instead transforms and recontextualizes it, thereby influencing how we remember and perceive progress.</p>
+          </div>
+          <p class="meta">LMC 2400 · Thu 11 Sep 2025 · 75 min · Speaker: Watson Hartsoe</p>
+          <div class="chips gridlines" style="margin-top:10px;">
+            <span class="chip">Model: myth‑OS skin</span>
+            <span class="chip">Seed: ✣ fixed‑point</span>
+            <span class="chip">Prompt: tri‑field</span>
+          </div>
+        </div>
+        <div class="foot"><span>Use ←/→ or S T R M</span><span>Immediacy ↔ Receipts</span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Explain the global time axis at the top. This shows the flow of time and where each field focuses. -->
+    <!-- 1. Axiom 1: Void (Animated Timeline) -->
+    <section class="slide" data-id="1" aria-roledescription="slide" aria-label="Axiom 1: Void - Undifferentiated Temporal Experience" data-time-focus="past">
+      <div class="frame" data-style="found">
+        <header>
+          <h2>Axiom 1: Void</h2>
+          <span class="badge">Axioms</span>
+        </header>
+        <div class="content">
+            <div class="diagram-panel" aria-labelledby="axiom1-subtitle" aria-describedby="axiom1-caption">
+                <svg class="svg-diagram" viewBox="0 0 400 100" role="img" aria-labelledby="axiom1-title">
+                    <title id="axiom1-title">Axiom 1: Void - Undifferentiated Temporal Experience</title>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" class="svg-arrowhead" />
+                        </marker>
+                    </defs>
+                    <line x1="50" y1="50" x2="350" y2="50" class="micro-timeline-line" stroke="var(--muted)" stroke-width="4"/>
+                    <text x="200" y="40" class="svg-text" fill="var(--muted)">◻ VOID</text>
+                </svg>
+                <h3 class="subtitle" id="axiom1-subtitle">The undifferentiated temporal continuum</h3>
+                <p class="caption" id="axiom1-caption">Before any distinction, there is the Void: a continuous, undifferentiated flow of experience, without past or future, simply 'is'.</p>
+            </div>
+            <p class="meta">Analogy: An unwritten scroll, a blank canvas of time.</p>
+            <img src="https://via.placeholder.com/400x150?text=Blank+Continuum+Example" alt="Placeholder image for a blank continuum" class="example-image">
+        </div>
+        <div class="foot"><span>Fundamental Law: Time is a flow until marked</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Now, a distinction is carved into this flow. Watch for the 'Mark' appearing. -->
+    <!-- 2. Axiom 2: Mark (Animated Timeline) -->
+    <section class="slide" data-id="2" aria-roledescription="slide" aria-label="Axiom 2: Mark - Distinction-making Operation" data-time-focus="present">
+      <div class="frame" data-style="found">
+        <header>
+          <h2>Axiom 2: Mark</h2>
+          <span class="badge">Axioms</span>
+        </header>
+        <div class="content">
+            <div class="diagram-panel" aria-labelledby="axiom2-subtitle" aria-describedby="axiom2-caption">
+                <svg class="svg-diagram" viewBox="0 0 400 100" role="img" aria-labelledby="axiom2-title">
+                    <title id="axiom2-title">Axiom 2: Mark - Distinction-making Operation</title>
+                    <line x1="50" y1="50" x2="350" y2="50" class="micro-timeline-line"/>
+                    <circle cx="200" cy="50" r="5" class="micro-timeline-node marked" id="node-mark-2"/>
+                    <text x="200" y="35" class="micro-timeline-mark active" id="text-mark-2">◻</text>
+                </svg>
+                <h3 class="subtitle" id="axiom2-subtitle">The first act of distinction: A Mark appears</h3>
+                <p class="caption" id="axiom2-caption">A Mark is a cut in the temporal stream, creating an 'event' or a 'memory'. This single distinction creates two sides: 'this side' and 'that side'.</p>
+            </div>
+            <p class="meta">Example: A timestamp in a log file; the first recorded memory in an archive.</p>
+            <img src="https://via.placeholder.com/400x150?text=Timestamped+Event+Example" alt="Placeholder image of a timestamped event, like a social media post with a date." class="example-image">
+        </div>
+        <div class="foot"><span>Marking creates an inside and an outside</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Now, we see the spaces around that mark. Use the 'Marked/Unmarked' toggle to highlight the unmarked sections. -->
+    <!-- 3. Axiom 3: Unmarked Segments -->
+    <section class="slide" data-id="3" aria-roledescription="slide" aria-label="Axiom 3: Unmarked - The Space Around Distinction" data-time-focus="present" data-marked-state="marked">
+      <div class="frame" data-style="found">
+        <header>
+          <h2>Axiom 3: Unmarked</h2>
+          <span class="badge">Axioms</span>
+        </header>
+        <div class="content">
+            <div class="diagram-panel" aria-labelledby="axiom3-subtitle" aria-describedby="axiom3-caption">
+                <svg class="svg-diagram" viewBox="0 0 400 100" role="img" aria-labelledby="axiom3-title">
+                    <title id="axiom3-title">Axiom 3: Unmarked - The Space Around Distinction</title>
+                    <line x1="50" y1="50" x2="350" y2="50" class="micro-timeline-line"/>
+                    <circle cx="200" cy="50" r="5" class="micro-timeline-node marked accent" id="node-mark-3"/>
+                    <text x="200" y="35" class="micro-timeline-mark active">◻</text>
+                    <!-- Unmarked segments -->
+                    <line x1="50" y1="50" x2="195" y2="50" class="micro-timeline-segment" id="segment-unmarked-left"/>
+                    <text x="120" y="65" class="svg-text" fill="var(--muted)">Unmarked</text>
+                    <line x1="205" y1="50" x2="350" y2="50" class="micro-timeline-segment" id="segment-unmarked-right"/>
+                    <text x="280" y="65" class="svg-text" fill="var(--muted)">Unmarked</text>
+                </svg>
+                <h3 class="subtitle" id="axiom3-subtitle">The dual nature of distinction: Marked and Unmarked</h3>
+                <p class="caption" id="axiom3-caption">Every mark creates both a 'marked' point and 'unmarked' stretches around it. These unmarked areas are potential for new distinctions, or forgotten states of being.</p>
+            </div>
+            <p class="meta">Example: A moment of 'flow state' (unmarked) broken by a notification (mark).</p>
+            <img src="https://via.placeholder.com/400x150?text=Flow+State+Interrupted+Example" alt="Placeholder image of a serene scene interrupted by a notification icon" class="example-image">
+        </div>
+        <div class="foot"><span>The silence between notes is just as important</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Observe what happens when two marks interact. Use the 'Marked/Unmarked' toggle to see the collapse. -->
+    <!-- 4. Axiom 4: Crossing (Animated Timeline) -->
+    <section class="slide" data-id="4" aria-roledescription="slide" aria-label="Axiom 4: Crossing - Transformation of States" data-time-focus="present" data-marked-state="marked">
+      <div class="frame" data-style="found">
+        <header>
+          <h2>Axiom 4: Crossing</h2>
+          <span class="badge">Axioms</span>
+        </header>
+        <div class="content">
+            <div class="diagram-panel" aria-labelledby="axiom4-subtitle" aria-describedby="axiom4-caption">
+                <svg class="svg-diagram" viewBox="0 0 400 100" role="img" aria-labelledby="axiom4-title">
+                    <title id="axiom4-title">Axiom 4: Crossing - Transformation of States</title>
+                    <line x1="50" y1="50" x2="350" y2="50" class="micro-timeline-line"/>
+                    <circle cx="150" cy="50" r="5" class="micro-timeline-node marked accent" id="node-mark-4a"/>
+                    <text x="150" y="35" class="micro-timeline-mark active">◻</text>
+                    <circle cx="250" cy="50" r="5" class="micro-timeline-node marked accent" id="node-mark-4b"/>
+                    <text x="250" y="35" class="micro-timeline-mark active">◻</text>
+                    <!-- Crossing effect: highlight between two marks to show unmarked result -->
+                    <line x1="155" y1="50" x2="245" y2="50" class="micro-timeline-segment" id="segment-crossing-result"/>
+                    <text x="200" y="65" class="svg-text" fill="var(--muted)">Unmarked</text>
+                </svg>
+                <h3 class="subtitle" id="axiom4-subtitle">The operation that transforms marked ↔ unmarked spaces</h3>
+                <p class="caption" id="axiom4-caption">Crossing occurs when two marks interact, collapsing into an unmarked state. This can be forgetting (marked to unmarked) or remembrance (unmarked to marked), shaping our temporal reality.</p>
+            </div>
+            <p class="meta">Example: Two adjacent tasks on a to-do list get combined into one bigger, unmarked project.</p>
+            <img src="https://via.placeholder.com/400x150?text=Collapsing+Tasks+Example" alt="Placeholder image of two checklist items merging into one larger project." class="example-image">
+        </div>
+        <div class="foot"><span>((◻)) = VOID. Distinction cancels itself out.</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- 5. Universal Field Equation (formerly 1) -->
+    <section class="slide" data-id="5" aria-roledescription="slide" aria-label="Universal Field Equation" data-time-focus="present">
+      <div class="frame" data-style="found">
+        <header>
+          <h2>Universal Field Equation</h2>
+          <span class="badge">Axioms</span>
+        </header>
+        <div class="content">
+            <p>The foundational framework that structures all temporal awareness:</p>
+            <div class="diagram-panel" aria-labelledby="universal-equation-subtitle" aria-describedby="universal-equation-caption">
+                <svg class="svg-diagram" viewBox="0 0 250 220" role="img" aria-labelledby="universal-equation-title">
+                    <title id="universal-equation-title">Universal Field Equation Flow</title>
+                    <!-- Boxes -->
+                    <rect x="25" y="10" width="200" height="30" class="svg-box"/>
+                    <text x="125" y="25" class="svg-text">◻ SPATIOTEMPORAL UNIVERSE</text>
+
+                    <rect x="25" y="50" width="200" height="30" class="svg-box"/>
+                    <text x="125" y="65" class="svg-text">◻ TEMPORAL MEMORY FIELD</text>
+
+                    <rect x="25" y="90" width="200" height="30" class="svg-box"/>
+                    <text x="125" y="105" class="svg-text">◻ CULTURAL WINDOW</text>
+
+                    <rect x="25" y="130" width="200" height="30" class="svg-box"/>
+                    <text x="125" y="145" class="svg-text">◻ RETRIEVAL PHENOMENON</text>
+
+                    <rect x="25" y="170" width="200" height="30" class="svg-box"/>
+                    <text x="125" y="185" class="svg-text">◻ BACKWARD‑FACING CONSCIOUSNESS</text>
+
+                    <!-- Arrows and Labels -->
+                    <line x1="125" y1="40" x2="125" y2="50" class="svg-arrow-line" />
+                    <text x="125" y="45" class="svg-text" style="font-size:10px;">[Contains]</text>
+
+                    <line x1="125" y1="80" x2="125" y2="90" class="svg-arrow-line" />
+                    <text x="125" y="85" class="svg-text" style="font-size:10px;">[Observed Through]</text>
+
+                    <line x1="125" y1="120" x2="125" y2="130" class="svg-arrow-line" />
+                    <text x="125" y="125" class="svg-text" style="font-size:10px;">[Manifests As]</text>
+
+                    <line x1="125" y1="160" x2="125" y2="170" class="svg-arrow-line" />
+                    <text x="125" y="165" class="svg-text" style="font-size:10px;">[Converges On]</text>
+                </svg>
+                <h3 class="subtitle" id="universal-equation-subtitle">The Universal Field Equation flow</h3>
+                <p class="caption" id="universal-equation-caption">Each ◻ represents a distinct entity or concept. Arrows denote the primary morphisms (relationships or transformations) between them, creating a flow from the broadest to the most specific aspect of temporal consciousness.</p>
+            </div>
+            <p><strong>Fundamental law:</strong> All temporal consciousness operates through backward‑facing distinctions that create present meaning by marking past/unmarked relations.</p>
+        </div>
+        <div class="foot"><span>Distinction → Indication → Memory</span><span class="chips"><span class="chip">Rune: ✣</span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Now we apply this to the Sankofa Field. Notice how the state machine shows a cyclical process of retrieval. The global time axis highlights 'Past'. -->
+    <!-- 6. Sankofa Field (Ancestral Retrieval) -->
+    <section class="slide" data-id="6" aria-roledescription="slide" aria-label="Sankofa Field" data-time-focus="past">
+      <div class="frame" data-style="sankofa">
+        <header>
+          <h2>Ancestral Retrieval (Sankofa Field)</h2>
+          <span class="badge">Field</span>
+        </header>
+        <div class="content">
+          <div class="diagram-panel" aria-labelledby="sankofa-state-machine-subtitle" aria-describedby="sankofa-state-machine-caption">
+            <svg class="svg-diagram" viewBox="0 0 400 200" role="img" aria-labelledby="sankofa-state-machine-title">
+                <title id="sankofa-state-machine-title">Sankofa Field State Machine: Forget, Retrieve, Integrate</title>
+                <!-- States (Circles) -->
+                <circle cx="100" cy="50" r="30" class="state-node-circle"/>
+                <text x="100" y="50" class="state-label">FORGET</text>
+
+                <circle cx="300" cy="50" r="30" class="state-node-circle"/>
+                <text x="300" y="50" class="state-label">RETRIEVE</text>
+
+                <circle cx="200" cy="150" r="30" class="state-node-circle"/>
+                <text x="200" y="150" class="state-label">INTEGRATE</text>
+
+                <!-- Transitions -->
+                <path d="M130,50 L270,50" class="state-transition-line"/>
+                <text x="200" y="30" class="state-transition-label">GO BACK</text>
+
+                <path d="M280.6,76.4 Q275,100 220,130" class="state-transition-line"/>
+                <text x="250" y="100" class="state-transition-label">REMEMBER</text>
+
+                <path d="M179.4,130 Q125,100 119.4,76.4" class="state-transition-line"/>
+                <text x="150" y="100" class="state-transition-label">ENACT</text>
+            </svg>
+            <h3 class="subtitle" id="sankofa-state-machine-subtitle">Sankofa: Forgetting, Retrieving, and Integrating knowledge</h3>
+            <p class="caption" id="sankofa-state-machine-caption">This state machine illustrates Sankofa's process: knowledge moves from 'Forgotten' to 'Retrieved' via the 'GO BACK' operation, then 'Integrated' into the present through 'REMEMBER' and 'ENACT' actions, ensuring circular wisdom.</p>
+          </div>
+          <p class="meta">Core transform: <strong>FORGOTTEN → REMEMBERED</strong> via <em>EGG operator</em> (futurity through pastness).</p>
+          <div class="grid" style="margin-top:20px;">
+            <div class="card sankofa-card">
+              <h3>Crossings</h3>
+              <ul>
+                <li>◻ ANCESTRAL | ◻ CONTEMPORARY → ◻ LIVING TRADITION</li>
+                <li>◻ ORAL | ◻ SYMBOLIC → ◻ EMBODIED PRACTICE</li>
+              </ul>
+              <p class="meta">Example: Adinkra forms remediated as digital logos activating ancestral knowledge.</p>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span>Retrieval as ethical imperative</span><span class="chips"><span class="chip">Scale: generational</span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Now the Angelus Novus Field. See how the states depict being caught between catastrophe and a forced future. The global time axis highlights 'Future'. -->
+    <!-- 7. Angelus Novus Field (Catastrophe Witness) -->
+    <section class="slide" data-id="7" aria-roledescription="slide" aria-label="Angelus Novus Field" data-time-focus="future">
+      <div class="frame" data-style="angel">
+        <header>
+          <h2>Catastrophe Witness (Angelus Novus Field)</h2>
+          <span class="badge">Field</span>
+        </header>
+        <div class="content">
+          <div class="diagram-panel" aria-labelledby="angelus-state-machine-subtitle" aria-describedby="angelus-state-machine-caption">
+            <svg class="svg-diagram" viewBox="0 0 400 200" role="img" aria-labelledby="angelus-state-machine-title">
+                <title id="angelus-state-machine-title">Angelus Novus Field State Machine: Witness, Pause, Pushed</title>
+                <!-- States (Rectangles) -->
+                <rect x="50" y="50" width="80" height="40" class="state-node-rect"/>
+                <text x="90" y="70" class="state-label">WITNESS</text>
+
+                <rect x="270" y="50" width="80" height="40" class="state-node-rect"/>
+                <text x="310" y="70" class="state-label">PAUSE</text>
+
+                <rect x="160" y="130" width="80" height="40" class="state-node-rect"/>
+                <text x="200" y="150" class="state-label">PUSHED</text>
+
+                <!-- Transitions -->
+                <path d="M130,70 L270,70" class="state-transition-line"/>
+                <text x="200" y="50" class="state-transition-label">SEE DEBRIS</text>
+
+                <path d="M280.6,96.4 Q275,120 220,130" class="state-transition-line"/>
+                <text x="250" y="110" class="state-transition-label">STORM DRIVES</text>
+
+                <path d="M179.4,130 Q125,120 119.4,96.4" class="state-transition-line"/>
+                <text x="150" y="110" class="state-transition-label">REFLECT</text>
+            </svg>
+            <h3 class="subtitle" id="angelus-state-machine-subtitle">Angelus Novus: The cycle of witnessing catastrophe</h3>
+            <p class="caption" id="angelus-state-machine-caption">The Angel moves from 'Witnessing' debris to a 'Pause' of critical reflection, only to be 'Pushed' forward by the storm of progress, which itself creates more debris to witness in a continuous, tragic loop.</p>
+          </div>
+          <p class="meta">Core transform: <strong>PROGRESS → CATASTROPHE</strong> via <em>STORM operator</em> (forced futurity despite backward gaze).</p>
+          <div class="grid" style="margin-top:20px;">
+            <div class="card angel-card">
+              <h3>Crossings</h3>
+              <ul>
+                <li>◻ PROGRESS | ◻ CATASTROPHE → ◻ CRITICAL HISTORIOGRAPHY</li>
+                <li>◻ TELEOLOGICAL | ◻ MESSIANIC → ◻ JETZTZEIT (NOW‑TIME)</li>
+              </ul>
+              <p class="meta">Contemporary manifestation: infinite scroll as the new storm; debris becomes data overload.</p>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span>Witness costs; resist teleology</span><span class="chips"><span class="chip">Scale: messianic</span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Finally, Remediation as a state machine. Note how it cycles through imitation and innovation. The global time axis highlights 'Present'. -->
+    <!-- 8. Remediation Field (Media Evolution) -->
+    <section class="slide" data-id="8" aria-roledescription="slide" aria-label="Remediation Field" data-time-focus="present">
+      <div class="frame" data-style="remed">
+        <header>
+          <h2>Media Evolution (Remediation Field)</h2>
+          <span class="badge">Field</span>
+        </header>
+        <div class="content">
+          <div class="diagram-panel" aria-labelledby="remediation-state-machine-subtitle" aria-describedby="remediation-state-machine-caption">
+            <svg class="svg-diagram" viewBox="0 0 400 200" role="img" aria-labelledby="remediation-state-machine-title">
+                <title id="remediation-state-machine-title">Remediation Field State Machine: Imitate, Hybridize, Innovate</title>
+                <!-- States (Circles) -->
+                <circle cx="100" cy="50" r="30" class="state-node-circle"/>
+                <text x="100" y="50" class="state-label">IMITATE</text>
+
+                <circle cx="300" cy="50" r="30" class="state-node-circle"/>
+                <text x="300" y="50" class="state-label">HYBRIDIZE</text>
+
+                <circle cx="200" cy="150" r="30" class="state-node-circle"/>
+                <text x="200" y="150" class="state-label">INNOVATE</text>
+
+                <!-- Transitions -->
+                <path d="M130,50 L270,50" class="state-transition-line"/>
+                <text x="200" y="30" class="state-transition-label">COPY</text>
+
+                <path d="M280.6,76.4 Q275,120 220,130" class="state-transition-line"/>
+                <text x="250" y="100" class="state-transition-label">TOGGLE RAILS</text>
+
+                <path d="M179.4,130 Q125,100 119.4,76.4" class="state-transition-line"/>
+                <text x="150" y="100" class="state-transition-label">BREAK FORM</text>
+            </svg>
+            <h3 class="subtitle" id="remediation-state-machine-subtitle">Remediation: The cycle of media evolution</h3>
+            <p class="caption" id="remediation-state-machine-caption">Media forms begin by 'Imitating' prior ones ('COPY'), then 'Hybridize' elements ('TOGGLE RAILS' between old/new interface elements), and eventually 'Innovate' by 'BREAKING FORM', starting a new cycle of imitation.</p>
+          </div>
+          <p class="meta">Core: <strong>OLD FORM → NEW FUNCTION</strong> via the horseless‑carriage operator.</p>
+          <div class="grid" style="margin-top:20px;">
+            <div class="card remed-card">
+              <h3>Crossings</h3>
+              <ul>
+                <li>◻ TRANSPARENT | ◻ OPAQUE → ◻ INTERFACE OSCILLATION</li>
+                <li>◻ IMITATIVE | ◻ INNOVATIVE → ◻ EVOLUTIONARY THRESHOLD</li>
+              </ul>
+              <p class="meta">Algorithmic example: style prompts → emergent model aesthetics; provenance becomes authenticity.</p>
+            </div>
+          </div>
+        </div>
+        <div class="foot"><span>Immediacy ↔ Hypermediacy rail</span><span class="chips"><span class="chip">Rail: Receipts on</span></span></div>
+      </div>
+    </section>
+
+    <!-- 9. Aura Relocation (formerly 5) -->
+    <section class="slide" data-id="9" aria-roledescription="slide" aria-label="Aura Relocation Theorem" data-time-focus="present">
+      <div class="frame">
+        <header>
+          <h2>Aura Relocation Theorem</h2>
+          <span class="badge">Theorem</span>
+        </header>
+        <div class="content">
+          <blockquote style="border-left:3px solid var(--fg); padding-left:12px; margin:0 0 14px;">
+            Reproduction doesn’t kill aura; it relocates it, reshaping memory and progress.
+          </blockquote>
+          <div class="diagram-panel" aria-labelledby="aura-relocation-subtitle" aria-describedby="aura-relocation-caption">
+            <svg class="svg-diagram" viewBox="0 0 500 180" role="img" aria-labelledby="aura-relocation-title">
+                <title id="aura-relocation-title">Aura Relocation Theorem</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <!-- Aura Definitions -->
+                <text x="10" y="20" class="svg-text" text-anchor="start">AURA_CLASSICAL = unique presence in time/space</text>
+                <text x="10" y="40" class="svg-text" text-anchor="start">AURA_DIGITAL   = verifiable provenance chain</text>
+                <text x="10" y="60" class="svg-text" text-anchor="start">AURA_ALGORITHMIC = transparency of generative process</text>
+
+                <!-- Flow -->
+                <rect x="20" y="90" width="140" height="30" class="svg-box"/>
+                <text x="90" y="105" class="svg-text">AURA_CLASSICAL</text>
+
+                <line x1="160" y1="105" x2="200" y2="105" class="svg-arrow-line" marker-end="url(#arrowhead)"/>
+                <text x="180" y="90" class="svg-text" style="font-size:10px;">[Remediation]</text>
+
+                <rect x="200" y="90" width="140" height="30" class="svg-box"/>
+                <text x="270" y="105" class="svg-text">AURA_DIGITAL</text>
+
+                <line x1="340" y1="105" x2="380" y2="105" class="svg-arrow-line" marker-end="url(#arrowhead)"/>
+                <text x="360" y="90" class="svg-text" style="font-size:10px;">[AI Transform]</text>
+
+                <rect x="380" y="90" width="100" height="30" class="svg-box"/>
+                <text x="430" y="105" class="svg-text">AURA_ALGORITHMIC</text>
+            </svg>
+            <h3 class="subtitle" id="aura-relocation-subtitle">Aura's transformation across media types</h3>
+            <p class="caption" id="aura-relocation-caption">Classical aura is rooted in uniqueness. Through remediation and AI transformation, aura migrates to verifiable digital provenance and transparency of generative processes.</p>
+          </div>
+          <div class="chips" style="margin-top:10px;">
+            <span class="chip">Model</span><span class="chip">Seed</span><span class="chip">Prompt</span>
+          </div>
+          <p class="meta">In algorithmic media, aura migrates to metadata: seed numbers, model citations, prompt transparency become ritual context.</p>
+        </div>
+        <div class="foot"><span>Process as presence</span><span>Receipts = aura</span></div>
+      </div>
+    </section>
+
+    <!-- 10. Unified Metamodel (formerly 6) -->
+    <section class="slide" data-id="10" aria-roledescription="slide" aria-label="Unified Metamodel" data-time-focus="past">
+      <div class="frame">
+        <header>
+          <h2>Unified Metamodel — Fixed Point</h2>
+          <span class="badge">Metamodel</span>
+        </header>
+        <div class="content">
+          <p>All three fields converge on a fixed point:</p>
+          <div class="diagram-panel" aria-labelledby="fixed-point-subtitle" aria-describedby="fixed-point-caption">
+            <svg class="svg-diagram" viewBox="0 0 400 100" role="img" aria-labelledby="fixed-point-title">
+                <title id="fixed-point-title">Unified Metamodel: Fixed Point</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <rect x="50" y="35" width="300" height="30" class="svg-box"/>
+                <text x="200" y="50" class="svg-text">◻ FIXED POINT = ◻ BACKWARD‑FACING TEMPORAL CONSCIOUSNESS</text>
+            </svg>
+            <h3 class="subtitle" id="fixed-point-subtitle">The convergence of all fields</h3>
+            <p class="caption" id="fixed-point-caption">This equation visually represents the fundamental principle that all three temporal fields (Sankofa, Angelus Novus, Remediation) ultimately center on a consciousness oriented towards the past to inform the present and future.</p>
+          </div>
+          <div class="grid" style="margin-top:12px;">
+            <div class="card"><h3>Sankofa</h3><p>Ethical imperative: go back and get it.</p></div>
+            <div class="card"><h3>Angel</h3><p>Critical method: reveal hidden costs.</p></div>
+            <div class="card"><h3>Remediation</h3><p>Technical means: media genealogy.</p></div>
+          </div>
+          <p style="margin-top:12px;">Resonances: Sankofa ↔ Remediation (conservative retrieval); Angel ↔ Remediation (mediatic conditions); Sankofa ↔ Angel (backward orientation).</p>
+        </div>
+        <div class="foot"><span>✣ Star‑cross fixed‑point</span><span class="chips"><span class="chip">Compose: ∘</span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Show how the TikTok filter creates a 'predictive Sankofa'. The global time axis highlights both 'Past' and 'Future'. -->
+    <!-- 11. Case 1: TikTok Aging Filter (formerly 7) -->
+    <section class="slide" data-id="11" aria-roledescription="slide" aria-label="Case 1 TikTok Aging Filter" data-time-focus="past-future">
+      <div class="frame" data-style="sankofa">
+        <header>
+          <h2>Case 1 — TikTok Aging Filter as Temporal Field</h2>
+          <span class="badge">Case</span>
+        </header>
+        <div class="content">
+          <ul>
+            <li>Field: personal future‑memory simulation</li>
+            <li>Window: phone camera + AI face transform</li>
+            <li>Phenomenon: ritual confrontation with mortality</li>
+            <li>Aura: emotional authenticity of reaction</li>
+          </ul>
+          <div class="diagram-panel" aria-labelledby="tiktok-filter-subtitle" aria-describedby="tiktok-filter-caption">
+            <svg class="svg-diagram" viewBox="0 0 400 60" role="img" aria-labelledby="tiktok-filter-title">
+                <title id="tiktok-filter-title">TikTok Aging Filter as Temporal Bridge</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <rect x="10" y="15" width="120" height="30" class="svg-box"/>
+                <text x="70" y="30" class="svg-text">◻ YOUNG_SELF</text>
+
+                <path d="M130,30 Q150,15 170,30" class="svg-arrow-line" marker-end="url(#arrowhead)"/>
+                <text x="140" y="10" class="svg-text" style="font-size:10px;">|</text>
+
+                <rect x="170" y="15" width="100" height="30" class="svg-box"/>
+                <text x="220" y="30" class="svg-text">◻ OLD_SELF</text>
+
+                <text x="280" y="30" class="svg-text">→</text>
+
+                <rect x="300" y="15" width="90" height="30" class="svg-box"/>
+                <text x="345" y="30" class="svg-text">◻ TEMPORAL_BRIDGE</text>
+            </svg>
+            <h3 class="subtitle" id="tiktok-filter-subtitle">Bridging past and future selves</h3>
+            <p class="caption" id="tiktok-filter-caption">The aging filter creates a categorical crossing between the young and imagined old self, forming a temporal bridge that elicits emotional engagement with future-memory.</p>
+          </div>
+          <img src="https://via.placeholder.com/400x150?text=TikTok+Aging+Filter+Screenshot" alt="Placeholder screenshot of a person using a TikTok aging filter." class="example-image">
+        </div>
+        <div class="foot"><span>Predictive Sankofa</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Here we see how AI art builds its aura through transparent provenance. The global time axis highlights 'Present'. -->
+    <!-- 12. Case 2: AI Art Provenance (formerly 8) -->
+    <section class="slide" data-id="12" aria-roledescription="slide" aria-label="Case 2 AI Art Provenance" data-time-focus="present">
+      <div class="frame" data-style="remed">
+        <header>
+          <h2>Case 2 — AI Art Provenance as Remediated Authenticity</h2>
+          <span class="badge">Case</span>
+        </header>
+        <div class="content">
+          <ul>
+            <li>Kayfabe: acknowledge AI yet sustain mystique</li>
+            <li>Parrhesia: full transparency (model, prompt, seed)</li>
+            <li>Cringe: concealment collapses trust</li>
+          </ul>
+          <div class="diagram-panel" aria-labelledby="ai-art-provenance-subtitle" aria-describedby="ai-art-provenance-caption">
+            <svg class="svg-diagram" viewBox="0 0 450 60" role="img" aria-labelledby="ai-art-provenance-title">
+                <title id="ai-art-provenance-title">AI Art Provenance: Mystique vs. Receipts</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <rect x="10" y="15" width="100" height="30" class="svg-box"/>
+                <text x="60" y="30" class="svg-text">◻ MYSTIQUE</text>
+
+                <text x="120" y="30" class="svg-text">|</text>
+
+                <rect x="150" y="15" width="100" height="30" class="svg-box"/>
+                <text x="200" y="30" class="svg-text">◻ RECEIPTS</text>
+
+                <text x="260" y="30" class="svg-text">→</text>
+
+                <rect x="290" y="15" width="150" height="30" class="svg-box"/>
+                <text x="365" y="30" class="svg-text">◻ CURATED_TRANSPARENCY</text>
+            </svg>
+            <h3 class="subtitle" id="ai-art-provenance-subtitle">Balancing the magic and mechanics of AI art</h3>
+            <p class="caption" id="ai-art-provenance-caption">The authenticity of AI art arises from a critical crossing between the perceived mystique of creation and the verifiable receipts (metadata) of its generation, leading to a state of curated transparency.</p>
+          </div>
+          <img src="https://via.placeholder.com/400x150?text=AI+Art+Provenance+Example" alt="Placeholder image of an AI-generated artwork with prompt and model details displayed as provenance." class="example-image">
+        </div>
+        <div class="foot"><span>Receipts as ritual</span><span class="chips"><span class="chip">CC / C2PA</span></span></div>
+      </div>
+    </section>
+
+    <!-- PRESENTER NOTE: Here we connect platform algorithms to the Angelus Novus, relentlessly pushing us forward. The global time axis highlights 'Future'. -->
+    <!-- 13. Case 3: Platform Algorithms as Angelus Novus (formerly 9) -->
+    <section class="slide" data-id="13" aria-roledescription="slide" aria-label="Case 3 Platform Algorithms" data-time-focus="future">
+      <div class="frame" data-style="angel">
+        <header>
+          <h2>Case 3 — Platform Algorithms as Angelus Novus</h2>
+          <span class="badge">Case</span>
+        </header>
+        <div class="content">
+          <ul>
+            <li>Storm: algorithmic curation forces endless forward scroll</li>
+            <li>Debris: accumulated posts pile up unseen</li>
+            <li>Backward gaze: "Memories" features retrieve fragments</li>
+            <li>Paralysis: overload without cessation</li>
+          </ul>
+          <img src="https://via.placeholder.com/400x150?text=Infinite+Scroll+Debris+Example" alt="Placeholder image of an endless social media feed with small 'memories' fragments popping up." class="example-image">
+        </div>
+        <div class="foot"><span>Witness the feed</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- 14. Design Implications (formerly 10) -->
+    <section class="slide" data-id="14" aria-roledescription="slide" aria-label="Design Implications" data-time-focus="present">
+      <div class="frame">
+        <header>
+          <h2>Design Implications</h2>
+          <span class="badge">Practice</span>
+        </header>
+        <div class="content grid">
+          <div class="card"><h3>Authenticity Systems</h3><ol>
+            <li>Build provenance into creation tools</li>
+            <li>Make transparency desirable (receipts as style)</li>
+            <li>Design for public witnessing</li></ol></div>
+          <div class="card"><h3>Memory Platforms</h3><ol>
+            <li>Sankofa interfaces: active retrieval</li>
+            <li>Angel perspectives: surface hidden costs</li>
+            <li>Remediation awareness: show media genealogy</li></ol></div>
+          <div class="card"><h3>AI Ethics</h3><ol>
+            <li>Content credentials as categorical imperatives</li>
+            <li>Model transparency as aura preservation</li>
+            <li>Community verification as practice</li></ol></div>
+        </div>
+        <div class="foot"><span>From theory to tooling</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- 15. Synthesis (formerly 11) -->
+    <section class="slide" data-id="15" aria-roledescription="slide" aria-label="Synthesis" data-time-focus="future">
+      <div class="frame">
+        <header>
+          <h2>New Temporal Contract — Synthesis</h2>
+          <span class="badge">Synthesis</span>
+        </header>
+        <div class="content">
+          <ol>
+            <li><strong>Sankofa retrieval</strong> — go back and get suppressed knowledge</li>
+            <li><strong>Angel witnessing</strong> — keep costs visible</li>
+            <li><strong>Remediation awareness</strong> — know how new imitates old</li>
+          </ol>
+          <div class="diagram-panel" aria-labelledby="temporal-wisdom-subtitle" aria-describedby="temporal-wisdom-caption">
+            <svg class="svg-diagram" viewBox="0 0 600 80" role="img" aria-labelledby="temporal-wisdom-title">
+                <title id="temporal-wisdom-title">New Temporal Contract: Temporal Wisdom</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <rect x="10" y="25" width="160" height="30" class="svg-box"/>
+                <text x="90" y="40" class="svg-text">◻ TEMPORAL_WISDOM</text>
+
+                <text x="180" y="40" class="svg-text">=</text>
+
+                <rect x="210" y="25" width="120" height="30" class="svg-box"/>
+                <text x="270" y="40" class="svg-text">◻ ETHICAL_RETRIEVAL</text>
+
+                <text x="340" y="40" class="svg-text">⊕</text>
+
+                <rect x="360" y="25" width="120" height="30" class="svg-box"/>
+                <text x="420" y="40" class="svg-text">◻ CRITICAL_WITNESS</text>
+
+                <text x="490" y="40" class="svg-text">⊕</text>
+
+                <rect x="510" y="25" width="120" height="30" class="svg-box"/>
+                <text x="570" y="40" class="svg-text">◻ MEDIA_CONSCIOUSNESS</text>
+            </svg>
+            <h3 class="subtitle" id="temporal-wisdom-subtitle">The components of a mature temporal consciousness</h3>
+            <p class="caption" id="temporal-wisdom-caption">Temporal Wisdom, the foundation of a new temporal contract, is synthesized from ethical retrieval (Sankofa), critical witnessing (Angelus Novus), and media consciousness (Remediation). The ⊕ symbol denotes a categorical composition.</p>
+          </div>
+        </div>
+        <div class="foot"><span>Mature technological consciousness</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- 16. Coda (formerly 12) -->
+    <section class="slide" data-id="16" aria-roledescription="slide" aria-label="Coda: Question of Origins" data-time-focus="past-present">
+      <div class="frame">
+        <header>
+          <h2>Coda — The Question of Origins</h2>
+          <span class="badge">Coda</span>
+        </header>
+        <div class="content">
+          <div class="diagram-panel" aria-labelledby="first-distinction-subtitle" aria-describedby="first-distinction-caption">
+            <svg class="svg-diagram" viewBox="0 0 350 60" role="img" aria-labelledby="first-distinction-title">
+                <title id="first-distinction-title">First Distinction: Past vs. Present</title>
+                <rect x="10" y="15" width="100" height="30" class="svg-box"/>
+                <text x="60" y="30" class="svg-text">◻ PAST</text>
+
+                <text x="120" y="30" class="svg-text">|</text>
+
+                <rect x="150" y="15" width="100" height="30" class="svg-box"/>
+                <text x="200" y="30" class="svg-text">◻ PRESENT</text>
+            </svg>
+            <h3 class="subtitle" id="first-distinction-subtitle">The foundational act of temporal awareness</h3>
+            <p class="caption" id="first-distinction-caption">The first distinction, the primary act of marking, separates the undifferentiated void into 'past' and 'present,' foundational for all subsequent temporal consciousness.</p>
+          </div>
+
+          <p>Triadic crossings:</p>
+          <ul style="list-style:none; padding:0;">
+            <li><span class="triad">Sankofa: <span class="pill">FORGOTTEN</span><span class="arrow" style="--arrow-content: '|';"></span><span class="pill">REMEMBERED</span></span></li>
+            <li><span class="triad">Angel: <span class="pill">PROGRESS</span><span class="arrow" style="--arrow-content: '|';"></span><span class="pill">CATASTROPHE</span></span></li>
+            <li><span class="triad">Remediation: <span class="pill">OLD_FORM</span><span class="arrow" style="--arrow-content: '|';"></span><span class="pill">NEW_FUNCTION</span></span></li>
+          </ul>
+
+          <div class="diagram-panel" aria-labelledby="temporal-consciousness-subtitle" aria-describedby="temporal-consciousness-caption">
+            <svg class="svg-diagram" viewBox="0 0 550 80" role="img" aria-labelledby="temporal-consciousness-title">
+                <title id="temporal-consciousness-title">Composition of Temporal Consciousness</title>
+                <!-- Marker definition is global, reused from the first SVG -->
+
+                <rect x="10" y="25" width="180" height="30" class="svg-box"/>
+                <text x="100" y="40" class="svg-text">◻ TEMPORAL_CONSCIOUSNESS</text>
+
+                <text x="200" y="40" class="svg-text">=</text>
+
+                <rect x="230" y="25" width="80" height="30" class="svg-box"/>
+                <text x="270" y="40" class="svg-text">◻ SANKOFA</text>
+
+                <text x="320" y="40" class="svg-text">∘</text>
+
+                <rect x="340" y="25" width="70" height="30" class="svg-box"/>
+                <text x="375" y="40" class="svg-text">◻ ANGEL</text>
+
+                <text x="420" y="40" class="svg-text">∘</text>
+
+                <rect x="440" y="25" width="100" height="30" class="svg-box"/>
+                <text x="490" y="40" class="svg-text">◻ REMEDIATION</text>
+            </svg>
+            <h3 class="subtitle" id="temporal-consciousness-subtitle">The categorical composition of temporal consciousness</h3>
+            <p class="caption" id="temporal-consciousness-caption">Temporal Consciousness is not merely an addition, but a categorical composition (∘) of Sankofa, Angelus Novus, and Remediation fields, indicating that these operations are fundamentally intertwined and operate in concert.</p>
+          </div>
+        </div>
+        <div class="foot"><span>Origins as ongoing practice</span><span></span></div>
+      </div>
+    </section>
+
+    <!-- 17. Appendix: Olog (formerly 13) -->
+    <section class="slide" data-id="17" aria-roledescription="slide" aria-label="Appendix: Olog" data-time-focus="all">
+      <div class="frame" data-style="remed">
+        <header>
+          <h2>Appendix — Olog: Distinctions & Morphisms</h2>
+          <span class="badge">Appendix</span>
+        </header>
+        <div class="content grid">
+          <div class="card">
+            <h3>Objects (Categorical Elements)</h3>
+            <ul style="list-style:none; padding:0;">
+              <li><span class="cross">Void</span></li>
+              <li><span class="cross">Mark</span></li>
+              <li><span class="cross" style="--cross-before-content:'';">Marked / Unmarked</span></li>
+              <li><span class="triad"><span class="cross" style="--cross-before-content:'';">Old Medium</span><span class="arrow"></span><span class="cross" style="--cross-before-content:'';">New Medium</span></span></li>
+              <li><span class="triad"><span class="cross" style="--cross-before-content:'';">Past</span><span class="arrow" style="--arrow-content: '·';"></span><span class="cross" style="--cross-before-content:'';">Present</span><span class="arrow" style="--arrow-content: '·';"></span><span class="cross" style="--cross-before-content:'';">Future</span></span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Morphisms (Transformations)</h3>
+            <ul style="list-style:none; padding:0;">
+              <li><span class="triad arrow">Draw Distinction → Mark</span></li>
+              <li><span class="triad arrow">Remediate: Old → New (Conservative → Revolutionary)</span></li>
+              <li><span class="triad arrow">Sankofa Retrieval: Present → Past</span></li>
+              <li><span class="triad arrow">Angel’s Gaze: Past → Future</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Facts (Governing Laws)</h3>
+            <ul style="list-style:none; padding:0;">
+              <li><span class="triad">Law of Calling: <span class="pill">◻◻</span><span class="arrow">◻</span></span></li>
+              <li><span class="triad">Law of Crossing: <span class="pill">((◻))</span><span class="arrow">VOID</span></span></li>
+              <li><span class="triad arrow" style="--arrow-content: '↓';">Remediation Triangle</span></li>
+              <li><span class="triad arrow" style="--arrow-content: '↓';">Temporal Memory Triangle</span></li>
+            </ul>
+          </div>
+        </div>
+        <h3 class="subtitle">Summary of core concepts</h3>
+        <p class="caption">This Olog (ontology/category theory-inspired diagram) outlines the foundational objects (distinctions), morphisms (operations), and facts (laws) that govern the categorical field theory of temporal memory.</p>
+        <div class="foot"><span>See full bibliography in source doc</span><span class="chips"><span class="chip">Skeuomorphs → Neumorphs</span></span></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Slide Index Overlay -->
+  <aside class="index" id="index" aria-hidden="true" aria-label="Slide index dialog" role="dialog">
+    <div class="panel">
+      <h3>Slides</h3>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </aside>
+
+<script>
+(function(){
+  const qs = s=>document.querySelector(s);
+  const qsa = s=>Array.from(document.querySelectorAll(s));
+  const slides = qsa('.slide');
+  let i = 0;
+
+  const btnMarkedToggle = qs('#btnMarkedToggle');
+  const globalTimelineHighlight = qs('#globalTimelineHighlight');
+
+  function updateGlobalTimeAxis(slideId) {
+    let x = 0; // Default to Past
+    let width = 0; // Default width
+    const slide = slides[slideId];
+    if (!slide) return;
+
+    const timeFocus = slide.dataset.timeFocus;
+    const totalWidth = 150; // Max width of the global-timeline SVG
+    const segmentWidth = totalWidth / 3;
+
+    switch (timeFocus) {
+      case 'past':
+        x = 0;
+        width = segmentWidth;
+        break;
+      case 'present':
+        x = segmentWidth;
+        width = segmentWidth;
+        break;
+      case 'future':
+        x = segmentWidth * 2;
+        width = segmentWidth;
+        break;
+      case 'past-future': // For cases like TikTok filter
+        x = 0;
+        width = totalWidth; // Cover the whole timeline
+        break;
+      case 'all': // For appendix, cover everything
+      default:
+        x = 0;
+        width = totalWidth;
+        break;
+    }
+    globalTimelineHighlight.style.transform = `translateX(${x}px)`;
+    globalTimelineHighlight.setAttribute('width', width);
+  }
+
+  function toggleMarkedUnmarked() {
+    const currentSlide = slides[i];
+    if (currentSlide.dataset.markedState === 'marked') {
+      currentSlide.dataset.markedState = 'unmarked';
+      btnMarkedToggle.textContent = 'Show Marked';
+    } else {
+      currentSlide.dataset.markedState = 'marked';
+      btnMarkedToggle.textContent = 'Show Unmarked';
+    }
+  }
+
+  function handleAxiomSlide(slideId) {
+    const isAxiomSlide = (slideId >= 2 && slideId <= 4); // Slides 2, 3, 4 are axiom animations
+    btnMarkedToggle.style.display = isAxiomSlide ? 'inline-flex' : 'none';
+
+    if (isAxiomSlide) {
+      slides[i].dataset.markedState = 'marked'; // Reset to marked when entering axiom slide
+      btnMarkedToggle.textContent = 'Show Unmarked';
+    }
+  }
+
+  function show(n){
+    i = (n+slides.length)%slides.length;
+    slides.forEach((s,idx)=> s.style.display = idx===i ? 'block' : 'none');
+    document.title = `${i}. ${slides[i].getAttribute('aria-label')} — Temporal Memory`;
+    updateGlobalTimeAxis(i);
+    handleAxiomSlide(i);
+  }
+  function next(){ show(i+1); }
+  function prev(){ show(i-1); }
+
+  // Controls
+  qs('#btnNext').addEventListener('click', next);
+  qs('#btnPrev').addEventListener('click', prev);
+
+  // Theme toggle
+  qs('#btnTheme').addEventListener('click', ()=>{
+    const root = document.body;
+    root.setAttribute('data-theme', root.getAttribute('data-theme')==='noir' ? 'bone' : 'noir');
+  });
+
+  // Rails toggle (immediacy vs receipts)
+  qs('#btnRails').addEventListener('click', ()=>{
+    document.body.classList.toggle('rail-hidden');
+  });
+
+  // Marked/Unmarked toggle for Axioms
+  btnMarkedToggle.addEventListener('click', toggleMarkedUnmarked);
+
+
+  // Index overlay
+  const index = qs('#index');
+  const tiles = qs('#tiles');
+  function populateIndex(){
+    slides.forEach((s, idx)=>{
+      const tile = document.createElement('button');
+      tile.className = 'tile'; tile.setAttribute('aria-label', s.getAttribute('aria-label'));
+      tile.innerHTML = `<strong>${idx}.</strong> ${s.getAttribute('aria-label')}`;
+      tile.addEventListener('click', ()=>{ index.setAttribute('aria-hidden','true'); show(idx); });
+      tiles.appendChild(tile);
+    });
+  }
+  populateIndex();
+  qs('#btnIndex').addEventListener('click', ()=>{
+    index.setAttribute('aria-hidden', index.getAttribute('aria-hidden')==='true'?'false':'true');
+  });
+
+  // Keyboard
+  window.addEventListener('keydown', (e)=>{
+    const k = e.key;
+    if(['ArrowRight','d','D',' '].includes(k)) { e.preventDefault(); next(); }
+    if(['ArrowLeft','a','A','Backspace'].includes(k)) { e.preventDefault(); prev(); }
+    if(k==='Home'){ e.preventDefault(); show(0); }
+    if(k==='End'){ e.preventDefault(); show(slides.length-1); }
+    if(k==='t' || k==='T'){ e.preventDefault(); qs('#btnTheme').click(); }
+    if(k==='r' || k==='R'){ e.preventDefault(); qs('#btnRails').click(); }
+    if(k==='s' || k==='S'){ e.preventDefault(); qs('#btnIndex').click(); }
+    if(k==='m' || k==='M'){ e.preventDefault(); if(btnMarkedToggle.style.display !== 'none') btnMarkedToggle.click(); }
+  });
+
+  // Swipe
+  let touchStartX=null;
+  window.addEventListener('touchstart', (e)=>{ touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+  window.addEventListener('touchend', (e)=>{
+    if(touchStartX==null) return; const dx = e.changedTouches[0].clientX - touchStartX; touchStartX=null;
+    if(Math.abs(dx) > 40){ dx<0 ? next() : prev(); }
+  }, {passive:true});
+
+  // Reduced motion: remove background scanline layer if user prefers
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function applyReducedMotion(){
+    if(mq.matches){ document.documentElement.style.setProperty('--scanline','none'); }
+    // Rune halo pulse animation removal (if present)
+    const runeAfter = document.querySelector('.brand .rune::after');
+    if (runeAfter) {
+      if (mq.matches) {
+        runeAfter.style.transition = 'none';
+        runeAfter.style.boxShadow = 'none'; // Ensure no glow if motion is reduced
+      } else {
+        runeAfter.style.transition = 'box-shadow .6s ease';
+      }
+    }
+  }
+  mq.addEventListener('change', applyReducedMotion); applyReducedMotion();
+
+  // Init
+  slides.forEach((s,idx)=> s.style.display = idx===0 ? 'block' : 'none');
+  updateGlobalTimeAxis(0);
+  handleAxiomSlide(0); // Check initial slide for axiom specific controls
+  // Announce slide count for SR users
+  const sr = document.createElement('div'); sr.id='sr'; sr.className='sr-only'; sr.textContent = `${slides.length} slides.`; document.body.appendChild(sr);
+})();
+</script>
+</body>
+</html>
